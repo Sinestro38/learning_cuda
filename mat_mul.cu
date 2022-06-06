@@ -1,18 +1,20 @@
 #include <iostream>
-#define N 2 
+#define N 512
 
 //
 __global__ void mat_mul (double** res, double** mat1, double** mat2, int n)
 {
-    // int index = threadIdx.x;
-    // int index = threadIdx.y;
+    int bid_x = blockIdx.x;
+    int tid_x = threadIdx.x;
 
     for (int row_index{0}; row_index < n; row_index++) {
         for (int col_index{0}; col_index < n; col_index++) {
-            res[row_index][col_index] = 0;
-            // compute dot product
-            for (int k{0}; k < n; k++) {
-                res[row_index][col_index] += mat1[row_index][k] * mat2[k][col_index];
+            if (bid_x == row_index && tid_x == col_index) {
+                res[row_index][col_index] = 0;
+                // compute dot product
+                for (int k{0}; k < n; k++) {
+                    res[row_index][col_index] += mat1[row_index][k] * mat2[k][col_index];
+                }
             }
         }
     }    
@@ -83,36 +85,24 @@ int main()
     
     // -- END TRANSFER MATRIX FROM HOST TO DEVICE --
     
-    mat_mul<<<1,1>>>(d_res, d_a, d_b, N);
+    // Execute kernel
+    mat_mul<<<N,N>>>(d_res, d_a, d_b, N);
     
     // Transfer array result from device to host
     cudaMemcpy(d_resh, d_res, sizeof(double*)*N, cudaMemcpyDeviceToHost);
     for ( int i{0}; i<N; i++ ) {
         cudaMemcpy(res[i], d_resh[i], sizeof(double) *N, cudaMemcpyDeviceToHost);
-    }
-    
-    
-    // --- PRINT MATRIX ON HOST ---
-    // for (int i=0; i < N; i++)
-    // {
-    //         for (int j{0}; j<N; j++) std::cout << arr[i][j];
-        
-    //         std::cout << std::endl;
-    //     }
-    // --- END PRINT MATRIX ON HOST ---
-    
+    }    
     
     // -- BEGIN TEST -- 
     bool correct{true};
     for (int i = 0; i < N; i++) {
         for (int j = 0; j < N; j++) {
-            std::cout << res[i][j];
             if (res[i][j] != correct_res[i][j]) {
                 correct = false;
                 // break;
             }
         }
-        std::cout << std::endl;
     }
     if (correct)
     printf("example PASSED\n");

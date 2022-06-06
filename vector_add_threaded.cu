@@ -36,6 +36,7 @@ int main(){
     float* d_a;
     float* d_b;
     float* d_out;
+
     cudaMalloc( (void**)&d_a, sizeof(float)*N );
     cudaMalloc( (void**)&d_b, sizeof(float)*N );
     cudaMalloc( (void**)&d_out, sizeof(float)*N );

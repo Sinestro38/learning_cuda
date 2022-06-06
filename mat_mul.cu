@@ -1,7 +1,7 @@
 #include <iostream>
 #define N 512
 
-//
+// Approach with 2D array containing array of pointers to arrays
 __global__ void mat_mul (double** res, double** mat1, double** mat2, int n)
 {
     int bid_x = blockIdx.x;
